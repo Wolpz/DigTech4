@@ -31,9 +31,9 @@ ARCHITECTURE rtl OF bin2bcd_tb IS
    SIGNAL clk_in        : std_logic;
    SIGNAL rst_in        : std_logic;
    SIGNAL start_conv_in : std_logic;
-   SIGNAL bin_in        : std_logic_vector((bin_width-1) downto 0);
+   SIGNAL bin_in        : unsigned(bin_width-1 downto 0);--std_logic_vector((bin_width-1) downto 0);
    SIGNAL conv_rdy_out  : std_logic;
-   SIGNAL bcd_out       : std_logic_vector(7 downto 0);
+   SIGNAL bcd_out       : unsigned(7 downto 0);--std_logic_vector(7 downto 0);
 
 
    -- Component declarations
@@ -45,9 +45,9 @@ ARCHITECTURE rtl OF bin2bcd_tb IS
          clk_in        : IN     std_logic;
          rst_in        : IN     std_logic;
          start_conv_in : IN     std_logic;
-         bin_in        : IN     std_logic_vector((bin_width-1) downto 0);
+         bin_in        : IN     unsigned(bin_width-1 downto 0);--std_logic_vector((bin_width-1) downto 0);
          conv_rdy_out  : OUT    std_logic;
-         bcd_out       : OUT    std_logic_vector(7 downto 0)
+         bcd_out       : OUT    unsigned(7 downto 0)--std_logic_vector(7 downto 0)
       );
    END COMPONENT;
 
@@ -59,9 +59,9 @@ ARCHITECTURE rtl OF bin2bcd_tb IS
          clk_in        : OUT    std_logic;
          rst_in        : OUT    std_logic;
          start_conv_in : OUT    std_logic;
-         bin_in        : OUT    std_logic_vector((bin_width-1) downto 0);
+         bin_in        : OUT    unsigned(bin_width-1 downto 0);--std_logic_vector((bin_width-1) downto 0);
          conv_rdy_out  : IN     std_logic;
-         bcd_out       : IN     std_logic_vector(7 downto 0)
+         bcd_out       : IN     unsigned(7 downto 0)--std_logic_vector(7 downto 0)
       );
    END COMPONENT;
 

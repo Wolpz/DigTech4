@@ -11,7 +11,7 @@ LIBRARY ieee;
 USE ieee.std_logic_1164.all;
 --USE ieee.std_logic_arith.all;
 USE ieee.numeric_std.all;
-USE ieee.std_logic_unsigned.all;
+--USE ieee.std_logic_unsigned.all;
 
 ENTITY bin2bcd IS
   generic(
@@ -21,10 +21,10 @@ ENTITY bin2bcd IS
     clk_in:           in        std_logic;
     rst_in:           in        std_logic;
     start_conv_in:    in        std_logic;
-    bin_in:           in        std_logic_vector((bin_width-1) downto 0);
+    bin_in:           in        unsigned(bin_width-1 downto 0);--std_logic_vector((bin_width-1) downto 0);
     
     conv_rdy_out:     out       std_logic;
-    bcd_out:          out       std_logic_vector(7 downto 0)
+    bcd_out:          out       unsigned(7 downto 0)--std_logic_vector(7 downto 0)
   );
 END ENTITY bin2bcd;
 
@@ -40,10 +40,10 @@ ARCHITECTURE bin2bcd_arch OF bin2bcd IS
         rst_in:           in        std_logic;
         enable_in:        in        std_logic;
         adjust_in:        in        std_logic;
-        ctr_val_in:       in        std_logic_vector(ctr_width-1 downto 0); 
-        ctr_comp_val_in:  in        std_logic_vector(ctr_width-1 downto 0);
+        ctr_val_in:       in        unsigned(ctr_width-1 downto 0);--std_logic_vector(ctr_width-1 downto 0); 
+        ctr_comp_val_in:  in        unsigned(ctr_width-1 downto 0);--std_logic_vector(ctr_width-1 downto 0);
         
-        ctr_val_out:      out       std_logic_vector(ctr_width-1 downto 0); 
+        ctr_val_out:      out       unsigned(ctr_width-1 downto 0);--std_logic_vector(ctr_width-1 downto 0); 
         ctr_match_out:    out       std_logic
       );
    END COMPONENT;
@@ -52,8 +52,8 @@ ARCHITECTURE bin2bcd_arch OF bin2bcd IS
   signal ctr_enable:      std_logic;
   signal ctr_match:       std_logic;
   signal ctr_rst:         std_logic;
-  signal buf:             std_logic_vector((bin_width + 7) downto 0);
-  signal bcd:             std_logic_vector(7 downto 0);
+  signal buf:             unsigned(bin_width+7 downto 0);--std_logic_vector((bin_width + 7) downto 0);
+  signal bcd:             unsigned(7 downto 0);--std_logic_vector(7 downto 0);
 BEGIN
   -- Component instantiations
            BIN2BCD_CTR_0 : counter
@@ -65,8 +65,8 @@ BEGIN
                rst_in          => ctr_rst,
                enable_in       => ctr_enable,
                adjust_in       => '0',
-               ctr_val_in      => std_logic_vector(to_unsigned(0, 4)),
-               ctr_comp_val_in => std_logic_vector(to_unsigned(bin_width-1, 4)),
+               ctr_val_in      => to_unsigned(0, 4),
+               ctr_comp_val_in => to_unsigned(bin_width-1, 4),
                
                ctr_match_out   => ctr_match
             );
@@ -79,8 +79,8 @@ BEGIN
       
       if(rst_in = '1') then
         conv_rdy_out <= '0';
-        bcd <= std_logic_vector(to_unsigned(0, bcd'length));
-        buf <= std_logic_vector(to_unsigned(0, buf'length));
+        bcd <= to_unsigned(0, bcd'length);--std_logic_vector(to_unsigned(0, bcd'length));
+        buf <= to_unsigned(0, buf'length);--std_logic_vector(to_unsigned(0, buf'length));
         ctr_enable <= '0';
       else
         if(start_conv_in = '1') then
@@ -97,18 +97,16 @@ BEGIN
           bcd <= buf((bin_width+7) downto bin_width);
         elsif(ctr_enable = '1') then    
           --keep looping this until done (bin_width num of iterations) 
-          if(buf((bin_width+3) downto bin_width) > std_logic_vector(to_unsigned(4, 4))) then
-            --buf <= (buf((bin_width+6) downto bin_width) + "00000011") & buf((bin_width-1) downto 0) & '0';
-            --buf <= (buf((bin_width+6) downto 0) + std_logic_vector(to_unsigned(3, 2) sll bin_width)) & '0';
-            --buf((bin_width+7) downto bin_width) <= (buf((bin_width+7) downto bin_width) + "00000011");
-            --buf <= buf(bin_width+6 downto 0) & '0';
-            buf((bin_width+7) downto (bin_width+1)) <= buf((bin_width+6) downto bin_width) + std_logic_vector(to_unsigned(3, 8));
-            buf(bin_width downto 0) <= buf((bin_width-1) downto 0) & '0';
+          if(buf((bin_width+3) downto bin_width) > to_unsigned(4, 4)) then
+            -- add 3 and shift left 1
+            buf(bin_width+7 downto bin_width+1) <= buf(bin_width+6 downto bin_width) + 3;
+            buf(bin_width downto 0) <= buf(bin_width-1 downto 0) & '0';
             conv_rdy_out <= '1';
           else 
-            -- shift left 1, throwing away MSB
-            buf <= buf((bin_width+6) downto 0) & '0';
+            -- shift left 1
+            buf <= buf sll 1;
           end if;
+
         end if;
       end if;
     end if;     

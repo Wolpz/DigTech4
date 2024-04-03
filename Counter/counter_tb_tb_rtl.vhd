@@ -9,7 +9,8 @@
 --
 LIBRARY ieee;
 USE ieee.std_logic_1164.all;
-USE ieee.std_logic_arith.all;
+--USE ieee.std_logic_arith.all;
+use IEEE.numeric_std.all;
 
 
 ENTITY counter_tb IS
@@ -32,9 +33,9 @@ ARCHITECTURE rtl OF counter_tb IS
    SIGNAL rst_in          : std_logic;
    SIGNAL enable_in       : std_logic;
    SIGNAL adjust_in       : std_logic;
-   SIGNAL ctr_val_in      : std_logic_vector(ctr_width-1 downto 0);
-   SIGNAL ctr_comp_val_in : std_logic_vector(ctr_width-1 downto 0);
-   SIGNAL ctr_val_out     : std_logic_vector(ctr_width-1 downto 0);
+   SIGNAL ctr_val_in      : unsigned(ctr_width-1 downto 0);--std_logic_vector(ctr_width-1 downto 0);
+   SIGNAL ctr_comp_val_in : unsigned(ctr_width-1 downto 0);--std_logic_vector(ctr_width-1 downto 0);
+   SIGNAL ctr_val_out     : unsigned(ctr_width-1 downto 0);--std_logic_vector(ctr_width-1 downto 0);
    SIGNAL ctr_match_out   : std_logic;
 
 
@@ -48,9 +49,9 @@ ARCHITECTURE rtl OF counter_tb IS
          rst_in          : IN     std_logic;
          enable_in       : IN     std_logic;
          adjust_in       : IN     std_logic;
-         ctr_val_in      : IN     std_logic_vector(ctr_width-1 downto 0);
-         ctr_comp_val_in : IN     std_logic_vector(ctr_width-1 downto 0);
-         ctr_val_out     : OUT    std_logic_vector(ctr_width-1 downto 0);
+         ctr_val_in      : IN     unsigned(ctr_width-1 downto 0);--std_logic_vector(ctr_width-1 downto 0);
+         ctr_comp_val_in : IN     unsigned(ctr_width-1 downto 0);--std_logic_vector(ctr_width-1 downto 0);
+         ctr_val_out     : OUT    unsigned(ctr_width-1 downto 0);--std_logic_vector(ctr_width-1 downto 0);
          ctr_match_out   : OUT    std_logic
       );
    END COMPONENT;
@@ -64,9 +65,9 @@ ARCHITECTURE rtl OF counter_tb IS
          rst_in          : OUT    std_logic;
          enable_in       : OUT    std_logic;
          adjust_in       : OUT    std_logic;
-         ctr_val_in      : OUT    std_logic_vector(ctr_width-1 downto 0);
-         ctr_comp_val_in : OUT    std_logic_vector(ctr_width-1 downto 0);
-         ctr_val_out     : IN     std_logic_vector(ctr_width-1 downto 0);
+         ctr_val_in      : OUT    unsigned(ctr_width-1 downto 0);--std_logic_vector(ctr_width-1 downto 0);
+         ctr_comp_val_in : OUT    unsigned(ctr_width-1 downto 0);--std_logic_vector(ctr_width-1 downto 0);
+         ctr_val_out     : IN     unsigned(ctr_width-1 downto 0);--std_logic_vector(ctr_width-1 downto 0);
          ctr_match_out   : IN     std_logic
       );
    END COMPONENT;

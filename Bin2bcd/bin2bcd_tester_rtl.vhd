@@ -20,9 +20,9 @@ ENTITY bin2bcd_tester IS
       clk_in        : OUT    std_logic;
       rst_in        : OUT    std_logic;
       start_conv_in : OUT    std_logic;
-      bin_in        : OUT    std_logic_vector((bin_width-1) downto 0);
+      bin_in        : OUT    unsigned(bin_width-1 downto 0);--std_logic_vector((bin_width-1) downto 0);
       conv_rdy_out  : IN     std_logic;
-      bcd_out       : IN     std_logic_vector(7 downto 0)
+      bcd_out       : IN     unsigned(7 downto 0)--std_logic_vector(7 downto 0)
    );
 END bin2bcd_tester;
 
@@ -91,5 +91,5 @@ BEGIN
   
   end process;
   
-  bin_in <= std_logic_vector(to_unsigned(bin, bin_width));
+  bin_in <= to_unsigned(bin, bin_width);
 END rtl;

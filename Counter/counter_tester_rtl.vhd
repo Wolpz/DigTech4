@@ -22,9 +22,9 @@ ENTITY counter_tester IS
       rst_in          : OUT    std_logic;
       enable_in       : OUT    std_logic;
       adjust_in       : OUT    std_logic;
-      ctr_val_in      : OUT    std_logic_vector(ctr_width-1 downto 0);
-      ctr_comp_val_in : OUT    std_logic_vector(ctr_width-1 downto 0);
-      ctr_val_out     : IN     std_logic_vector(ctr_width-1 downto 0);
+      ctr_val_in      : OUT    unsigned(ctr_width-1 downto 0);--std_logic_vector(ctr_width-1 downto 0);
+      ctr_comp_val_in : OUT    unsigned(ctr_width-1 downto 0);--std_logic_vector(ctr_width-1 downto 0);
+      ctr_val_out     : IN     unsigned(ctr_width-1 downto 0);--std_logic_vector(ctr_width-1 downto 0);
       ctr_match_out   : IN     std_logic
    );
 END counter_tester;
@@ -64,6 +64,6 @@ wait;
   
   end process;
   
-  ctr_val_in <= std_logic_vector(to_unsigned(ctr_val, ctr_width));
-  ctr_comp_val_in <= std_logic_vector(to_unsigned(ctr_comp_val, ctr_width));
+  ctr_val_in <= to_unsigned(ctr_val, ctr_width);
+  ctr_comp_val_in <= to_unsigned(ctr_comp_val, ctr_width);
 END rtl;
