@@ -1,15 +1,15 @@
 --
--- VHDL Architecture DigTech4_lib.counter.counter_arch
+-- VHDL Architecture DigTech4_lib.wekker.wekker_arch
 --
 -- Created:
 --          by - laure.UNKNOWN (CRAPTOP)
---          at - 11:09:51 26/03/2024
+--          at - 14:12:31 03/04/2024
 --
 -- using Mentor Graphics HDL Designer(TM) 2022.1 Built on 21 Jan 2022 at 13:00:30
 --
 LIBRARY ieee;
 USE ieee.std_logic_1164.all;
-USE ieee.std_logic_arith.all;
+USE ieee.numeric_std.all;
 
 ENTITY wekker IS
   port(
@@ -27,3 +27,4 @@ ENTITY wekker IS
     led_out:          out       std_logic
   );
 END ENTITY wekker;
+
