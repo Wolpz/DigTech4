@@ -13,14 +13,14 @@ use IEEE.numeric_std.all;
 
 ENTITY debouncer IS
   GENERIC (  
-    samples:               integer := 20;
+    samples:               integer := 20
   );
   PORT (
     clk_in:          in        std_logic;
     rst_in:          in        std_logic;
     s_in:            in        std_logic;
     
-    db_out:          out       std_logic;
+    db_out:          out       std_logic
   );
 END ENTITY debouncer;
 
@@ -29,7 +29,8 @@ ARCHITECTURE debouncer_arch OF debouncer IS
     signal buf:         std_logic_vector(samples-1 downto 0);
     signal compval:     std_logic_vector(samples-1 downto 0) := (others => '1');
 BEGIN
-    PROCESS(clk_in) is
+    PROCESS(clk_in) IS
+    BEGIN
         if(clk_in'event and  clk_in='1') then
             if(rst_in = '1') then
                 db_out <= '0';
@@ -43,7 +44,8 @@ BEGIN
                 else
                     db_out <= '0';
                 end if;
+            end if;
         end if;
-    END PROCESS
+    END PROCESS;
 END ARCHITECTURE debouncer_arch;
 
