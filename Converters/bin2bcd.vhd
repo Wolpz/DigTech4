@@ -9,9 +9,9 @@
 --
 LIBRARY ieee;
 USE ieee.std_logic_1164.all;
---USE ieee.std_logic_arith.all;
 USE ieee.numeric_std.all;
---USE ieee.std_logic_unsigned.all;
+LIBRARY DigTech4_lib;
+USE DigTech4_lib.ALL;
 
 ENTITY bin2bcd IS
   generic(
@@ -33,18 +33,21 @@ ARCHITECTURE bin2bcd_arch OF bin2bcd IS
   -- Component declarations
    COMPONENT counter
       GENERIC (
-         ctr_width : integer := 3
+         CTR_WIDTH :            integer     := 4;
+         CTR_OVERFLOW_VALUE :   integer     := ((2**4)-1)
       );
       PORT (
         clk_in:           in        std_logic;
         rst_in:           in        std_logic;
         enable_in:        in        std_logic;
+        updown_in:        in        std_logic;     
         adjust_in:        in        std_logic;
-        ctr_val_in:       in        unsigned(ctr_width-1 downto 0);--std_logic_vector(ctr_width-1 downto 0); 
-        ctr_comp_val_in:  in        unsigned(ctr_width-1 downto 0);--std_logic_vector(ctr_width-1 downto 0);
+        ctr_val_in:       in        unsigned(ctr_width-1 downto 0);
+        ctr_comp_val_in:  in        unsigned(ctr_width-1 downto 0);
         
-        ctr_val_out:      out       unsigned(ctr_width-1 downto 0);--std_logic_vector(ctr_width-1 downto 0); 
-        ctr_match_out:    out       std_logic
+        ctr_val_out:      out       unsigned(ctr_width-1 downto 0);
+        ctr_match_out:    out       std_logic;
+        ctr_overfl_out:   out       std_logic
       );
    END COMPONENT;
 
@@ -58,17 +61,21 @@ BEGIN
   -- Component instantiations
            BIN2BCD_CTR_0 : counter
             GENERIC MAP (
-               ctr_width => 4
+               CTR_WIDTH          =>    4,
+               CTR_OVERFLOW_VALUE =>    ((2**4)-1)
             )
             PORT MAP (
                clk_in          => clk_in,
                rst_in          => ctr_rst,
                enable_in       => ctr_enable,
+               updown_in       => '0',   
                adjust_in       => '0',
                ctr_val_in      => to_unsigned(0, 4),
                ctr_comp_val_in => to_unsigned(bin_width-1, 4),
                
+               --ctr_val_out   => ,
                ctr_match_out   => ctr_match
+               --ctr_overfl_out => 
             );
   
   PROCESS(clk_in)
