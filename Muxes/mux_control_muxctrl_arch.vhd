@@ -29,12 +29,15 @@ ENTITY mux_control IS
     outp_sel_out:     out       std_logic_vector(3 downto 0)
   );
 END ENTITY mux_control;
-
+-- TODO change this module so that it locks on enable, spits out data, then returns to inactive until enable is low again
 --
 ARCHITECTURE muxctrl_arch OF mux_control IS
   signal      out_select:    std_logic_vector(3 downto 0);
   signal      data:          unsigned(data_width-1 downto 0);
   signal      ctr:           unsigned(1 downto 0);
+  signal      data_buf:      unsigned(data_width*3-1 downto 0);
+  signal      mux_rdy   :    std_logic;
+
 BEGIN
     PROCESS(clk_in) is
   BEGIN 
@@ -47,23 +50,23 @@ BEGIN
         case(ctr) is
           when "00" => 
             data <= data_1_in;
+            data_buf <= data_2_in & data_3_in & data_4_in;
             out_select <= "1110";
+            ctr <= "01";
           when "01" => 
-            data <= data_2_in;
+            data <= data_buf(data_width*3-1 downto data_width*2);
             out_select <= "1101";
+            ctr <= "10";
           when "10" => 
-            data <= data_3_in;
+            data <= data_buf(data_width*2-1 downto data_width*1);
             out_select <= "1011";
+            ctr <= "11";
           when "11" => 
-            data <= data_4_in; 
-            out_select <= "0111";      
+            data <= data_buf(data_width-1 downto 0); 
+            out_select <= "0111";        
+            ctr <= "00";  
           when others => data <= to_unsigned(0, data_width);
         end case;
-        ctr <= ctr + 1;
-      else
-        out_select <= out_select;
-        data <= data;
-        ctr <= ctr;
       end if;
     end if;
   END PROCESS;

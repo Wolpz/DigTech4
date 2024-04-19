@@ -20,7 +20,7 @@ ENTITY wekker_tester IS
       DB_SAMPLES   : integer                      := 20
    );
    PORT (
-      clock_in           : OUT    std_logic;
+      clock_1hz_in           : OUT    std_logic;
       alarm_in           : OUT    std_logic;
       adjust_in          : OUT    std_logic_vector(1 downto 0);
       snooze_in          : OUT    std_logic;
@@ -43,10 +43,10 @@ BEGIN
    -- standard clk '1hz'
    process begin
       while(true) loop
-         clock_in <= '0';
-         wait for 100ns;
-         clock_in <= '1';
-         wait for 100ns;
+         clock_1hz_in <= '0';
+         wait for 50ns;
+         clock_1hz_in <= '1';
+         wait for 50ns;
       end loop;
       wait;
    end process;
@@ -72,9 +72,9 @@ BEGIN
       snooze_in <= '0';
       minute_in <= '0';
       hour_in <= '0';
-      wait for 100ms;
+      wait for 100000ns;
       adjust_in <= "10";
-      wait for 1ms;
+      wait for 1ps;
       minute_in <= '1';
       hour_in <= '1';
       wait for 500ns;
@@ -84,29 +84,35 @@ BEGIN
       for i in 0 to 100 loop
          minute_in <= '1';
          wait for 500ns;
-         minute_in <= '0'
+         minute_in <= '0';
          wait for 500ns;
        end loop;
+         for i in 0 to 30 loop
+            hour_in <= '1';
+            wait for 200ns;
+            hour_in <= '0';
+            wait for 200ns;
+          end loop;
       adjust_in <= "00";
-      wait for 1ms;
+      wait for 10us;
+
       adjust_in <= "01";
-      wait for 1ms;
+      wait for 500ns;
       for i in 0 to 30 loop
          hour_in <= '1';
-         wait for 500ns;
-         hour_in <= '0'
-         wait for 500ns;
+         wait for 200ns;
+         hour_in <= '0';
+         wait for 200ns;
        end loop;
-      adjust_in <= "00";
-      wait for 1ms;
-      alarm_in <= '1';
-      wait for 1000ms;
 
+      adjust_in <= "00";
+      alarm_in <= '1';
+      wait for 100us;
       while(true) loop
          snooze_in <= '1';
-         wait for 10ms;
+         wait for 1000ns;
          snooze_in <= '0';
-         wait;
+         wait for 10000ns;
       end loop;
 
    end process;

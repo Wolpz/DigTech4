@@ -1,0 +1,27 @@
+Counters:                                       
+    secs                        CHECK
+    mins                        -->check for rollover bug
+    hrs                         -->BUG: rollover from 0h 59m -> 0h 0m -> 1h 0m. Just one clock cycle but still
+
+Converters:                 CHECK
+    correctness                 CHECK
+
+Display mux:                CHECK
+    output                      CHECK
+
+State changes:              CHECK
+
+Adjust time:                CHECK
+    mins                        CHECK
+    hrs                         CHECK
+
+Adjust alarm:
+    mins 
+    hrs 
+
+Alarm:
+    turn on
+    compare flag
+    buzz
+    snooze
+    turn off

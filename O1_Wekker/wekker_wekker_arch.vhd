@@ -16,14 +16,14 @@ USE DigTech4_lib.ALL;
 
 ENTITY wekker IS
   generic (
-    SW_ADJ_RUN:          std_logic_vector(1 downto 0)              := "00"; -- TODO use of these in CASE statement gives warnings
+    SW_ADJ_RUN:          std_logic_vector(1 downto 0)              := "00";
     SW_ADJ_TIME:         std_logic_vector(1 downto 0)              := "10";
     SW_ADJ_ALARM:        std_logic_vector(1 downto 0)              := "01";
 
     DB_SAMPLES:          integer                                   := 20
   );
   port(
-    clock_in:         in        std_logic;
+    clock_1hz_in:         in        std_logic;
     alarm_in:         in        std_logic;
     adjust_in:        in        std_logic_vector(1 downto 0);
     snooze_in:        in        std_logic;
@@ -38,13 +38,6 @@ ENTITY wekker IS
   );
 END ENTITY wekker;
 
--- Additonal modules:
--- seconds, minutes, hours: counters
--- counter that goes off every 10mins for snooze
--- bin2bcd -> display mux
--- debouncers for all inputs
--- put wekker control logic in separate wekker_controller module for better overview
-
 --
 ARCHITECTURE wekker_arch OF wekker IS
     --============================== TYPEDEFS ==============================--
@@ -57,26 +50,24 @@ ARCHITECTURE wekker_arch OF wekker IS
         end record;
       type T_BCD_TIME is 
         record
-          HOURS_D0 :      unsigned(3 downto 0);
-          HOURS_D1 :      unsigned(3 downto 0);
-          MINUTES_D0 :    unsigned(3 downto 0);
-          MINUTES_D1 :    unsigned(3 downto 0);
+          HOURS :      unsigned(7 downto 0);
+          MINUTES :    unsigned(7 downto 0);
         end record;
 
 
   --============================== SIGNAL DEFINITIONS ==============================--
-      signal GLOBAL_RESET:            std_logic;
-      signal GLOBAL_TIME_ENABLE :     std_logic;
-      signal GLOBAL_ENABLE_ALARM :    std_logic;
-      signal GLOBAL_ADJUST_TIME  :  std_logic;
+      signal GLOBAL_RESET:              std_logic;
+      signal GLOBAL_TIME_ENABLE :       std_logic;
+      signal GLOBAL_ALLOW_ALARM :      std_logic;
+      signal GLOBAL_ADJUST_TIME  :      std_logic;
 
-      signal CURRENT_STATE:       T_STATE;
-      signal NEXT_STATE:          T_STATE;  
-      signal CURRENT_TIME:        T_TIME;
-      signal ALARM_TIME:          T_TIME;
-      signal ADJUSTED_TIME:       T_TIME;   
-      signal DISPLAY_VAL:         T_TIME;
-      signal BCD_TIME:            T_BCD_TIME; 
+      signal CURRENT_STATE:             T_STATE;
+      signal NEXT_STATE:                T_STATE;  
+      signal CURRENT_TIME:              T_TIME;
+      signal ALARM_TIME:                T_TIME;
+      signal ADJUSTED_TIME:             T_TIME;   
+      signal DISPLAY_VAL:               T_TIME;
+      signal BCD_TIME:                  T_BCD_TIME; 
       
       signal alarm_in_db:               std_logic;
       signal adjust_in_db:              std_logic_vector(1 downto 0);
@@ -88,30 +79,32 @@ ARCHITECTURE wekker_arch OF wekker IS
       signal minute_in_db_prev:         std_logic;
       signal hour_in_db_prev:           std_logic;
       
-      signal seconds_ctr_match :    std_logic; 
-      signal seconds_ctr_OVF :      std_logic;    
-      signal minutes_ctr_match :    std_logic; 
-      signal minutes_ctr_OVF :      std_logic; 
-      signal hours_ctr_match :      std_logic; 
-      signal hours_ctr_OVF :        std_logic; 
+      signal seconds_ctr_match :        std_logic; 
+      signal seconds_ctr_OVF :          std_logic;    
+      signal minutes_ctr_match :        std_logic; 
+      signal minutes_ctr_OVF :          std_logic; 
+      signal hours_ctr_match :          std_logic; 
+      signal hours_ctr_OVF :            std_logic; 
 
       signal bin2bcd_conv_start_mins :  std_logic;
       signal bin2bcd_conv_start_hrs :   std_logic;
-      signal bin2bcd_conv_compl_mins :  std_logic;
-      signal bin2bcd_conv_compl_hrs :   std_logic;
+      signal bin2bcd_rdy_mins :         std_logic;
+      signal bin2bcd_rdy_hrs :          std_logic;
+      signal bin2bcd_rdy_all :          std_logic;
 
-      signal alarm_state :         std_logic;
+      signal alarm_state :              std_logic;
 
-      signal snooze_ctr_enable :   std_logic;
-      signal snooze_ctr_updown :   std_logic;
-      signal snooze_ctr_adjust :   std_logic;
-      signal snooze_ctr_adjustVal :unsigned(5 downto 0);
-      signal snooze_ctr_compVal :  unsigned(5 downto 0);
-      signal snooze_ctr_val :      unsigned(5 downto 0);
-      signal snooze_ctr_match :    std_logic;
-      signal snooze_ctr_OVF :      std_logic;
+      signal snooze_ctr_rst :           std_logic;
+      signal snooze_ctr_enable :        std_logic;
+      signal snooze_ctr_updown :        std_logic;
+      signal snooze_ctr_adjust :        std_logic;
+      signal snooze_ctr_adjustVal :     unsigned(5 downto 0);
+      signal snooze_ctr_compVal :       unsigned(5 downto 0);
+      signal snooze_ctr_val :           unsigned(5 downto 0);
+      signal snooze_ctr_match :         std_logic;
+      signal snooze_ctr_OVF :           std_logic;
 
-      signal ledState :               std_logic;
+      signal ledState :                 std_logic;
 
   --============================== COMPONENT DECLARATIONS ==============================--
     COMPONENT debouncer
@@ -135,6 +128,7 @@ ARCHITECTURE wekker_arch OF wekker IS
         clk_in          : IN     std_logic;
         rst_in          : IN     std_logic;
         enable_in       : IN     std_logic;
+        count_in        : IN     std_logic; 
         updown_in       : IN     std_logic;
         adjust_in       : IN     std_logic;
         ctr_val_in      : IN     unsigned(CTR_WIDTH-1 downto 0);
@@ -194,17 +188,6 @@ ARCHITECTURE wekker_arch OF wekker IS
     FOR DISPL_MUX_0: mux_control USE ENTITY DigTech4_lib.mux_control;
         
   --============================== FUNCTIONS ==============================--
-  procedure relinkDisplay -- TODO Waarom mag ik geen signalen aansturen vanuit procedure??
-    (
-      signal source :             in    T_TIME
-    ) is
-    begin
-      DISPLAY_VAL.HOURS <= source.HOURS;
-      DISPLAY_VAL.MINUTES <= source.MINUTES;
-      bin2bcd_conv_start_hrs <= '1';
-      bin2bcd_conv_start_mins <= '1';
-    end procedure;
-
   procedure setUnsigned
     (
       signal s :        inout   unsigned;
@@ -298,9 +281,10 @@ BEGIN
           CTR_OVERFLOW_VALUE  =>      59
         )
         PORT MAP (
-          clk_in          => clock_in,
+          clk_in          => clock_1hz_in,
           rst_in          => GLOBAL_RESET,
           enable_in       => GLOBAL_TIME_ENABLE,
+          count_in        => clock_1hz_in,
           updown_in       => '0',
           adjust_in       => '0',
           ctr_val_in      => to_unsigned(0, 6),
@@ -316,9 +300,10 @@ BEGIN
           CTR_OVERFLOW_VALUE  =>      59
         )
         PORT MAP (
-          clk_in          => clock_in,
+          clk_in          => clock_1hz_in,
           rst_in          => GLOBAL_RESET,
           enable_in       => GLOBAL_TIME_ENABLE,
+          count_in        => seconds_ctr_OVF,
           updown_in       => '0',
           adjust_in       => GLOBAL_ADJUST_TIME,
           ctr_val_in      => ADJUSTED_TIME.MINUTES,
@@ -334,9 +319,10 @@ BEGIN
           CTR_OVERFLOW_VALUE  =>      23
         )
         PORT MAP (
-          clk_in          => clock_in,
+          clk_in          => clock_1hz_in,
           rst_in          => GLOBAL_RESET,
           enable_in       => GLOBAL_TIME_ENABLE,
+          count_in        => minutes_ctr_OVF,
           updown_in       => '0',
           adjust_in       => GLOBAL_ADJUST_TIME,
           ctr_val_in      => ADJUSTED_TIME.HOURS,
@@ -346,15 +332,18 @@ BEGIN
           ctr_overfl_out  => hours_ctr_OVF
         );
 
+      snooze_ctr_rst <= not snooze_ctr_enable;
+
       snooze_ctr : counter
         GENERIC MAP (
           CTR_WIDTH           =>      6,
           CTR_OVERFLOW_VALUE  =>      9
         )
         PORT MAP (
-          clk_in          => seconds_ctr_OVF,
-          rst_in          => (GLOBAL_RESET or not snooze_ctr_enable), -- TODO is this allowed??
+          clk_in          => clock_1hz_in,
+          rst_in          => snooze_ctr_rst,
           enable_in       => snooze_ctr_enable,
+          count_in        => seconds_ctr_OVF,
           updown_in       => '0',
           adjust_in       => '0',
           ctr_val_in      => to_unsigned(0, 6),
@@ -374,8 +363,8 @@ BEGIN
             rst_in        => GLOBAL_RESET,
             start_conv_in => bin2bcd_conv_start_mins,
             bin_in        => DISPLAY_VAL.MINUTES,
-            conv_rdy_out  => bin2bcd_conv_compl_mins,
-            bcd_out       => (BCD_TIME.MINUTES_D1(3 downto 0), BCD_TIME.MINUTES_D0(3 downto 0)) -- TODO is this allowed??
+            conv_rdy_out  => bin2bcd_rdy_mins,
+            bcd_out       => BCD_TIME.MINUTES
         );
 
       BIN2BCD_HOURS : bin2bcd
@@ -387,11 +376,13 @@ BEGIN
           rst_in        => GLOBAL_RESET,
           start_conv_in => bin2bcd_conv_start_hrs,
           bin_in        => DISPLAY_VAL.HOURS,
-          conv_rdy_out  => bin2bcd_conv_compl_hrs,
-          bcd_out       => (BCD_TIME.HOURS_D1 & BCD_TIME.HOURS_D0) -- TODO is this allowed??
+          conv_rdy_out  => bin2bcd_rdy_hrs,
+          bcd_out       => BCD_TIME.HOURS
         );
 
       --==== MUXES ====--
+      bin2bcd_rdy_all <= (bin2bcd_rdy_mins and bin2bcd_rdy_hrs);
+
       DISPL_MUX_0 : mux_control
         GENERIC MAP (
             data_width => 4
@@ -399,25 +390,45 @@ BEGIN
         PORT MAP (
             clk_in       => d_select_in,
             rst_in       => GLOBAL_RESET,
-            en_in        => (bin2bcd_conv_compl_mins and bin2bcd_conv_compl_hrs), -- TODO is this allowed??"not globally static"
-            data_1_in    => BCD_TIME.MINUTES_D0,
-            data_2_in    => BCD_TIME.MINUTES_D1,
-            data_3_in    => BCD_TIME.HOURS_D0,
-            data_4_in    => BCD_TIME.HOURS_D1,
+            en_in        => '1',
+            data_1_in    => BCD_TIME.MINUTES(3 downto 0),
+            data_2_in    => BCD_TIME.MINUTES(7 downto 4),
+            data_3_in    => BCD_TIME.HOURS(3 downto 0),
+            data_4_in    => BCD_TIME.HOURS(7 downto 4),
             data_out     => display_data_out,
             outp_sel_out => display_select_out
         );
     
-  PROCESS(clock_in)
+  PROCESS(clock_1hz_in) IS 
+  --==== PROCEDURES ====--
+    procedure relinkDisplay
+      (
+        signal source :             in    T_TIME
+      ) is
+      begin
+        DISPLAY_VAL <= source;
+        if((source.MINUTES /= DISPLAY_VAL.MINUTES) and bin2bcd_rdy_mins = '1') then
+          bin2bcd_conv_start_mins <= '1';
+        else
+          bin2bcd_conv_start_mins <= '0';
+        end if;
+        if((source.HOURS /= DISPLAY_VAL.HOURS) and bin2bcd_rdy_hrs = '1') then
+          bin2bcd_conv_start_hrs <= '1';
+        else
+          bin2bcd_conv_start_hrs <= '0';
+        end if;
+      end procedure;
+
+  --==== SYNCHRONOUS LOGIC ====--
     BEGIN
-    if(clock_in'event and clock_in='1') then
+    if(clock_1hz_in'event and clock_1hz_in='1') then
       NEXT_STATE    <= CURRENT_STATE;
       CURRENT_STATE <= NEXT_STATE;
 
       GLOBAL_ADJUST_TIME <= GLOBAL_ADJUST_TIME;
       GLOBAL_RESET <= GLOBAL_RESET;
       GLOBAL_TIME_ENABLE <= GLOBAL_TIME_ENABLE;
-      GLOBAL_ENABLE_ALARM <= GLOBAL_ENABLE_ALARM;
+      GLOBAL_ALLOW_ALARM <= GLOBAL_ALLOW_ALARM;
 
       bin2bcd_conv_start_mins <= '0';
       bin2bcd_conv_start_hrs <= '0';    
@@ -429,7 +440,7 @@ BEGIN
       led_out <= ledState;
 
       -- Alarm logic
-      if((alarm_in = '1') and (GLOBAL_ENABLE_ALARM = '1')) then
+      if((alarm_in = '1') and (GLOBAL_ALLOW_ALARM = '1')) then
         if(((hours_ctr_match = '1') and (minutes_ctr_match = '1')) and (alarm_state = '0')) then
           alarm_state <= '1';
           buzz_out <= '1';
@@ -459,7 +470,7 @@ BEGIN
           GLOBAL_RESET <= '1';
           GLOBAL_TIME_ENABLE <= '0';
           GLOBAL_ADJUST_TIME <= '0';
-          GLOBAL_ENABLE_ALARM <= '0';
+          GLOBAL_ALLOW_ALARM <= '0';
 
           setUnsigned(DISPLAY_VAL.MINUTES, 0);
           setUnsigned(DISPLAY_VAL.HOURS, 0);
@@ -487,9 +498,10 @@ BEGIN
 
         when WEKKER =>
           -- State actions
+          GLOBAL_RESET <= '0';
           GLOBAL_TIME_ENABLE <= '1';
           GLOBAL_ADJUST_TIME <= '0';
-          GLOBAL_ENABLE_ALARM <= '1';
+          GLOBAL_ALLOW_ALARM <= '1';
 
           relinkDisplay(CURRENT_TIME);
 
@@ -509,9 +521,10 @@ BEGIN
 
         when ADJUST_ALARM =>
           -- State actions
+            GLOBAL_RESET <= '0';
             GLOBAL_TIME_ENABLE <= '1';
             GLOBAL_ADJUST_TIME <= '0';
-            GLOBAL_ENABLE_ALARM <= '0';
+            GLOBAL_ALLOW_ALARM <= '0';
 
             relinkDisplay(ADJUSTED_TIME);  
             
@@ -547,9 +560,10 @@ BEGIN
 
         when ADJUST_TIME =>
           -- State actions
+            GLOBAL_RESET <= '0';
             GLOBAL_TIME_ENABLE <= '1';
             GLOBAL_ADJUST_TIME <= '1';
-            GLOBAL_ENABLE_ALARM <= '1';
+            GLOBAL_ALLOW_ALARM <= '1';
 
             relinkDisplay(ADJUSTED_TIME);
 
@@ -601,13 +615,13 @@ BEGIN
         -- State exit actions
           CASE CURRENT_STATE is 
             when RESET =>
-              GLOBAL_RESET <= '0';
+              
             when WEKKER =>
 
             when ADJUST_ALARM =>
 
             when ADJUST_TIME =>
-              CURRENT_TIME <= ADJUSTED_TIME;
+              
             END CASE;
         -- State enter actions
           CASE NEXT_STATE is 

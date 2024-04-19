@@ -15,12 +15,15 @@ use IEEE.numeric_std.all;
 
 ENTITY counter_tester IS
    GENERIC (
-      ctr_width : integer := 6
+      ctr_width : integer := 6;
+      CTR_OVERFLOW_VALUE :  integer     := 60
    );
    PORT (
       clk_in          : OUT    std_logic;
       rst_in          : OUT    std_logic;
       enable_in       : OUT    std_logic;
+      count_in:         OUT        std_logic; 
+      updown_in       : out std_logic; 
       adjust_in       : OUT    std_logic;
       ctr_val_in      : OUT    unsigned(ctr_width-1 downto 0);--std_logic_vector(ctr_width-1 downto 0);
       ctr_comp_val_in : OUT    unsigned(ctr_width-1 downto 0);--std_logic_vector(ctr_width-1 downto 0);
@@ -45,11 +48,22 @@ BEGIN
 end loop;
 wait;
   end process;
+
+  process begin
+   while(true) loop
+     count_in <= '0';
+     wait for 25ns;
+     count_in <= '1';
+     wait for 25ns;
+ end loop;
+ wait;
+   end process;
   
   process begin  
       rst_in <= '1';      
       enable_in <= '0';   
       adjust_in <= '0';     
+      updown_in <= '0';
       ctr_val <= 40;
       ctr_comp_val <= 59;
       wait for 20ns;
@@ -60,6 +74,8 @@ wait;
       adjust_in <= '1';
       wait for 20ns;
       adjust_in <= '0';
+      wait for 20ns;
+      updown_in <= '1';
       wait;
   
   end process;

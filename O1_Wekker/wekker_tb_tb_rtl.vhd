@@ -31,7 +31,7 @@ ARCHITECTURE rtl OF wekker_tb IS
    -- Architecture declarations
 
    -- Internal signal declarations
-   SIGNAL clock_in           : std_logic;
+   SIGNAL clock_1hz_in           : std_logic;
    SIGNAL alarm_in           : std_logic;
    SIGNAL adjust_in          : std_logic_vector(1 downto 0);
    SIGNAL snooze_in          : std_logic;
@@ -53,7 +53,7 @@ ARCHITECTURE rtl OF wekker_tb IS
          DB_SAMPLES   : integer                      := 20
       );
       PORT (
-         clock_in           : IN     std_logic;
+         clock_1hz_in           : IN     std_logic;
          alarm_in           : IN     std_logic;
          adjust_in          : IN     std_logic_vector(1 downto 0);
          snooze_in          : IN     std_logic;
@@ -75,7 +75,7 @@ ARCHITECTURE rtl OF wekker_tb IS
          DB_SAMPLES   : integer                      := 20
       );
       PORT (
-         clock_in           : OUT    std_logic;
+         clock_1hz_in           : OUT    std_logic;
          alarm_in           : OUT    std_logic;
          adjust_in          : OUT    std_logic_vector(1 downto 0);
          snooze_in          : OUT    std_logic;
@@ -105,7 +105,7 @@ BEGIN
                DB_SAMPLES   => DB_SAMPLES
             )
             PORT MAP (
-               clock_in           => clock_in,
+               clock_1hz_in           => clock_1hz_in,
                alarm_in           => alarm_in,
                adjust_in          => adjust_in,
                snooze_in          => snooze_in,
@@ -126,7 +126,7 @@ BEGIN
                DB_SAMPLES   => DB_SAMPLES
             )
             PORT MAP (
-               clock_in           => clock_in,
+               clock_1hz_in           => clock_1hz_in,
                alarm_in           => alarm_in,
                adjust_in          => adjust_in,
                snooze_in          => snooze_in,

@@ -59,8 +59,6 @@ BEGIN
       
       bin <= 24;  
       start_conv_in <= '1';
-      wait for 10ns;
-      start_conv_in <= '0';
       wait for 100ns;
       
       bin <= 45;

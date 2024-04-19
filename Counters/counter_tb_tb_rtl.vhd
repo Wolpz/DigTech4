@@ -30,8 +30,10 @@ ARCHITECTURE rtl OF counter_tb IS
 
    -- Internal signal declarations
    SIGNAL clk_in          : std_logic;
+   signal count_in         :std_logic;
    SIGNAL rst_in          : std_logic;
    SIGNAL enable_in       : std_logic;
+   SIGNAL updown_in  : std_logic;
    SIGNAL adjust_in       : std_logic;
    SIGNAL ctr_val_in      : unsigned(ctr_width-1 downto 0);--std_logic_vector(ctr_width-1 downto 0);
    SIGNAL ctr_comp_val_in : unsigned(ctr_width-1 downto 0);--std_logic_vector(ctr_width-1 downto 0);
@@ -42,12 +44,15 @@ ARCHITECTURE rtl OF counter_tb IS
    -- Component declarations
    COMPONENT counter
       GENERIC (
-         ctr_width : integer := 6
+         ctr_width : integer := 6;
+         CTR_OVERFLOW_VALUE :  integer     := 59
       );
       PORT (
          clk_in          : IN     std_logic;
          rst_in          : IN     std_logic;
          enable_in       : IN     std_logic;
+         count_in:         in        std_logic; 
+         updown_in:        in        std_logic;                        -- 1: DOWN   0: UP
          adjust_in       : IN     std_logic;
          ctr_val_in      : IN     unsigned(ctr_width-1 downto 0);--std_logic_vector(ctr_width-1 downto 0);
          ctr_comp_val_in : IN     unsigned(ctr_width-1 downto 0);--std_logic_vector(ctr_width-1 downto 0);
@@ -64,6 +69,8 @@ ARCHITECTURE rtl OF counter_tb IS
          clk_in          : OUT    std_logic;
          rst_in          : OUT    std_logic;
          enable_in       : OUT    std_logic;
+         count_in:         out        std_logic; 
+         updown_in:        out        std_logic;                        -- 1: DOWN   0: UP
          adjust_in       : OUT    std_logic;
          ctr_val_in      : OUT    unsigned(ctr_width-1 downto 0);--std_logic_vector(ctr_width-1 downto 0);
          ctr_comp_val_in : OUT    unsigned(ctr_width-1 downto 0);--std_logic_vector(ctr_width-1 downto 0);
@@ -88,6 +95,8 @@ BEGIN
                clk_in          => clk_in,
                rst_in          => rst_in,
                enable_in       => enable_in,
+               count_in       => count_in,
+               updown_in         => updown_in,
                adjust_in       => adjust_in,
                ctr_val_in      => ctr_val_in,
                ctr_comp_val_in => ctr_comp_val_in,
@@ -103,6 +112,8 @@ BEGIN
                clk_in          => clk_in,
                rst_in          => rst_in,
                enable_in       => enable_in,
+               count_in       => count_in,
+               updown_in         => updown_in,
                adjust_in       => adjust_in,
                ctr_val_in      => ctr_val_in,
                ctr_comp_val_in => ctr_comp_val_in,

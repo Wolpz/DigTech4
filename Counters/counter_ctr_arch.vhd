@@ -20,6 +20,7 @@ ENTITY counter IS
     clk_in:           in        std_logic;
     rst_in:           in        std_logic;
     enable_in:        in        std_logic;
+    count_in:         in        std_logic; 
     updown_in:        in        std_logic;                        -- 1: DOWN   0: UP
     adjust_in:        in        std_logic;
     ctr_val_in:       in        unsigned(CTR_WIDTH-1 downto 0);
@@ -42,14 +43,15 @@ BEGIN
         ctr_match_out <= '0';
         ctr_overfl_out <= '0';
         value <= to_unsigned(0, CTR_WIDTH);
+        
       elsif(enable_in = '1') then
         value <= value;
         ctr_match_out <= '0';
         ctr_overfl_out <= '0';
 
         if(adjust_in = '1') then -- adjusting counter value
-          value <= ctr_val_in;
-        else                     -- normal counter operation
+          value <= ctr_val_in;     
+        elsif(count_in = '1') then -- normal counter operation                    
           if(value = to_unsigned(CTR_OVERFLOW_VALUE, CTR_WIDTH) and updown_in = '0') then
             ctr_overfl_out <= '1';
             value <= to_unsigned(0, CTR_WIDTH);
@@ -74,6 +76,7 @@ BEGIN
       end if;
     end if;
   END PROCESS;
+
   ctr_val_out <= value;
 END ARCHITECTURE ctr_arch;
 
